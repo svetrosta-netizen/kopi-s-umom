@@ -26,8 +26,9 @@
         }
         .subtitle {
             text-align: center;
-            color: #666;
+            color: #800020; /* Бордовый для подзаголовка */
             margin-bottom: 30px;
+            font-weight: bold;
         }
         .inputs {
             display: grid;
@@ -88,15 +89,11 @@
             background: #f8f9fa;
         }
         .positive {
-            color: #27ae60;
+            color: #27ae60; /* Зеленый для разницы */
             font-weight: bold;
         }
         .negative {
-            color: #800020; /* Бордовый вместо красного */
-            font-weight: bold;
-        }
-        .comparative {
-            color: #800020; /* Бордовый для сравнительного анализа */
+            color: #800020; /* Бордовый для покупательной способности */
             font-weight: bold;
         }
         .chart-container {
@@ -157,9 +154,9 @@
                     <tr>
                         <th>Год</th>
                         <th>Рубли</th>
-                        <th>Рубли (покупательная способность)</th>
                         <th>Profit Max (евро)</th>
-                        <th>Сравнительный анализ</th>
+                        <th>Разница</th>
+                        <th>Рубли (покупательная способность)</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -213,15 +210,15 @@
                 }
 
                 const rubleReal = rubleNominal / Math.pow(1.12, year);
-                const difference = profitMax - rubleReal;
+                const difference = profitMax - rubleNominal; // Разница между валютой и рублями
 
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${year}</td>
                     <td>${formatCurrency(rubleNominal)}</td>
-                    <td class="negative">${formatCurrency(rubleReal)}</td>
                     <td class="positive">${formatCurrency(profitMax)}</td>
-                    <td class="comparative">${formatCurrency(difference)}</td>
+                    <td class="positive">${formatCurrency(difference)}</td>
+                    <td class="negative">${formatCurrency(rubleReal)}</td>
                 `;
                 tableBody.appendChild(row);
 
@@ -232,7 +229,7 @@
                 differenceData.push(difference);
             }
 
-            updateChart(labels, rubleNominalData, rubleRealData, profitMaxData);
+            updateChart(labels, rubleNominalData, profitMaxData, rubleRealData);
         }
 
         function formatCurrency(amount) {
@@ -243,7 +240,7 @@
             }).format(amount);
         }
 
-        function updateChart(labels, rubleNominalData, rubleRealData, profitMaxData) {
+        function updateChart(labels, rubleNominalData, profitMaxData, rubleRealData) {
             const ctx = document.getElementById('growthChart').getContext('2d');
             
             if (chart) {
@@ -264,19 +261,19 @@
                             tension: 0.1
                         },
                         {
-                            label: 'Рубли (покупательная способность)',
-                            data: rubleRealData,
-                            borderColor: '#800020', /* Бордовый */
-                            backgroundColor: 'rgba(128, 0, 32, 0.1)',
-                            borderWidth: 2,
-                            tension: 0.1
-                        },
-                        {
                             label: 'Profit Max (евро)',
                             data: profitMaxData,
                             borderColor: '#27ae60',
                             backgroundColor: 'rgba(39, 174, 96, 0.1)',
                             borderWidth: 3,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Рубли (покупательная способность)',
+                            data: rubleRealData,
+                            borderColor: '#800020', /* Бордовый */
+                            backgroundColor: 'rgba(128, 0, 32, 0.1)',
+                            borderWidth: 2,
                             tension: 0.1
                         }
                     ]
