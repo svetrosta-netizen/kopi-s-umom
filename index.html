@@ -92,12 +92,24 @@
             font-weight: bold;
         }
         .negative {
-            color: #e74c3c;
+            color: #800020; /* Бордовый */
+            font-weight: bold;
+        }
+        .comparative {
+            color: #800020; /* Бордовый для сравнительного анализа */
             font-weight: bold;
         }
         .chart-container {
             height: 400px;
             margin-top: 30px;
+        }
+        .signature {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            color: #7f8c8d;
+            font-size: 14px;
         }
         @media (max-width: 768px) {
             .inputs {
@@ -147,7 +159,7 @@
                         <th>Рубли</th>
                         <th>Рубли (покупательная способность)</th>
                         <th>Profit Max (евро)</th>
-                        <th>Разница</th>
+                        <th>Сравнительный анализ</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -158,6 +170,10 @@
 
         <div class="chart-container">
             <canvas id="growthChart"></canvas>
+        </div>
+
+        <div class="signature">
+            Создано с ❤️ · @finsveta
         </div>
     </div>
 
@@ -205,7 +221,7 @@
                     <td>${formatCurrency(rubleNominal)}</td>
                     <td class="negative">${formatCurrency(rubleReal)}</td>
                     <td class="positive">${formatCurrency(profitMax)}</td>
-                    <td class="positive">${formatCurrency(difference)}</td>
+                    <td class="comparative">${formatCurrency(difference)}</td>
                 `;
                 tableBody.appendChild(row);
 
@@ -250,8 +266,8 @@
                         {
                             label: 'Рубли (покупательная способность)',
                             data: rubleRealData,
-                            borderColor: '#e74c3c',
-                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                            borderColor: '#800020', /* Бордовый */
+                            backgroundColor: 'rgba(128, 0, 32, 0.1)',
                             borderWidth: 2,
                             tension: 0.1
                         },
