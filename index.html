@@ -144,9 +144,9 @@
                 <thead>
                     <tr>
                         <th>Год</th>
-                        <th>Рубли (номинал)</th>
-                        <th>Profit Max (евро)</th>
+                        <th>Рубли</th>
                         <th>Рубли (покупательная способность)</th>
+                        <th>Profit Max (евро)</th>
                         <th>Разница</th>
                     </tr>
                 </thead>
@@ -188,31 +188,27 @@
             let profitMax = initialAmount;
 
             const monthlyRateRub = annualPercent / 100 / 12;
-            const monthlyRateEur = (annualPercent / 100 + 0.12) / 12; // доходность + 12% роста курса
+            const monthlyRateEur = (annualPercent / 100 + 0.12) / 12;
 
             for (let year = 1; year <= years; year++) {
-                // Расчет с ежемесячными пополнениями
                 for (let month = 1; month <= 12; month++) {
                     rubleNominal = rubleNominal * (1 + monthlyRateRub) + monthlyDeposit;
                     profitMax = profitMax * (1 + monthlyRateEur) + monthlyDeposit;
                 }
 
-                // Покупательная способность рублевых накоплений (с учетом 12% инфляции)
                 const rubleReal = rubleNominal / Math.pow(1.12, year);
                 const difference = profitMax - rubleReal;
 
-                // Добавляем строку в таблицу
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${year}</td>
                     <td>${formatCurrency(rubleNominal)}</td>
-                    <td class="positive">${formatCurrency(profitMax)}</td>
                     <td class="negative">${formatCurrency(rubleReal)}</td>
+                    <td class="positive">${formatCurrency(profitMax)}</td>
                     <td class="positive">${formatCurrency(difference)}</td>
                 `;
                 tableBody.appendChild(row);
 
-                // Данные для графика
                 labels.push(`Год ${year}`);
                 rubleNominalData.push(rubleNominal);
                 profitMaxData.push(profitMax);
@@ -220,7 +216,7 @@
                 differenceData.push(difference);
             }
 
-            updateChart(labels, rubleNominalData, profitMaxData, rubleRealData);
+            updateChart(labels, rubleNominalData, rubleRealData, profitMaxData);
         }
 
         function formatCurrency(amount) {
@@ -231,7 +227,7 @@
             }).format(amount);
         }
 
-        function updateChart(labels, rubleNominalData, profitMaxData, rubleRealData) {
+        function updateChart(labels, rubleNominalData, rubleRealData, profitMaxData) {
             const ctx = document.getElementById('growthChart').getContext('2d');
             
             if (chart) {
@@ -244,10 +240,18 @@
                     labels: labels,
                     datasets: [
                         {
-                            label: 'Рубли (номинал)',
+                            label: 'Рубли',
                             data: rubleNominalData,
                             borderColor: '#95a5a6',
                             backgroundColor: 'rgba(149, 165, 166, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Рубли (покупательная способность)',
+                            data: rubleRealData,
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
                             borderWidth: 2,
                             tension: 0.1
                         },
@@ -257,14 +261,6 @@
                             borderColor: '#27ae60',
                             backgroundColor: 'rgba(39, 174, 96, 0.1)',
                             borderWidth: 3,
-                            tension: 0.1
-                        },
-                        {
-                            label: 'Рубли (покупательная способность)',
-                            data: rubleRealData,
-                            borderColor: '#e74c3c',
-                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
-                            borderWidth: 2,
                             tension: 0.1
                         }
                     ]
@@ -306,7 +302,6 @@
             });
         }
 
-        // Первоначальный расчет при загрузке
         document.addEventListener('DOMContentLoaded', calculate);
     </script>
 </body>
