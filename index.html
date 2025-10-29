@@ -127,7 +127,7 @@
             </div>
             
             <div class="input-group">
-                <label>Годовой процент (%):</label>
+                <label>Годовая доходность (%):</label>
                 <input type="number" id="annualPercent" value="10" min="0" max="100" step="0.1">
             </div>
             
@@ -146,6 +146,7 @@
                         <th>Год</th>
                         <th>Рубли (номинал)</th>
                         <th>Profit Max (евро)</th>
+                        <th>Рубли (покупательная способность)</th>
                         <th>Разница</th>
                     </tr>
                 </thead>
@@ -178,43 +179,48 @@
             tableBody.innerHTML = '';
 
             const labels = [];
-            const rubleData = [];
+            const rubleNominalData = [];
             const profitMaxData = [];
+            const rubleRealData = [];
             const differenceData = [];
 
-            let rubleBalance = initialAmount;
-            let profitMaxBalance = initialAmount;
+            let rubleNominal = initialAmount;
+            let profitMax = initialAmount;
 
             const monthlyRateRub = annualPercent / 100 / 12;
-            const monthlyRateEur = (annualPercent / 100 + 0.12) / 12; // 10% + 12% роста курса
+            const monthlyRateEur = (annualPercent / 100 + 0.12) / 12; // доходность + 12% роста курса
 
             for (let year = 1; year <= years; year++) {
                 // Расчет с ежемесячными пополнениями
                 for (let month = 1; month <= 12; month++) {
-                    rubleBalance = rubleBalance * (1 + monthlyRateRub) + monthlyDeposit;
-                    profitMaxBalance = profitMaxBalance * (1 + monthlyRateEur) + monthlyDeposit;
+                    rubleNominal = rubleNominal * (1 + monthlyRateRub) + monthlyDeposit;
+                    profitMax = profitMax * (1 + monthlyRateEur) + monthlyDeposit;
                 }
 
-                const difference = profitMaxBalance - rubleBalance;
+                // Покупательная способность рублевых накоплений (с учетом 12% инфляции)
+                const rubleReal = rubleNominal / Math.pow(1.12, year);
+                const difference = profitMax - rubleReal;
 
                 // Добавляем строку в таблицу
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${year}</td>
-                    <td>${formatCurrency(rubleBalance)}</td>
-                    <td class="positive">${formatCurrency(profitMaxBalance)}</td>
+                    <td>${formatCurrency(rubleNominal)}</td>
+                    <td class="positive">${formatCurrency(profitMax)}</td>
+                    <td class="negative">${formatCurrency(rubleReal)}</td>
                     <td class="positive">${formatCurrency(difference)}</td>
                 `;
                 tableBody.appendChild(row);
 
                 // Данные для графика
                 labels.push(`Год ${year}`);
-                rubleData.push(rubleBalance);
-                profitMaxData.push(profitMaxBalance);
+                rubleNominalData.push(rubleNominal);
+                profitMaxData.push(profitMax);
+                rubleRealData.push(rubleReal);
                 differenceData.push(difference);
             }
 
-            updateChart(labels, rubleData, profitMaxData);
+            updateChart(labels, rubleNominalData, profitMaxData, rubleRealData);
         }
 
         function formatCurrency(amount) {
@@ -225,7 +231,7 @@
             }).format(amount);
         }
 
-        function updateChart(labels, rubleData, profitMaxData) {
+        function updateChart(labels, rubleNominalData, profitMaxData, rubleRealData) {
             const ctx = document.getElementById('growthChart').getContext('2d');
             
             if (chart) {
@@ -239,7 +245,7 @@
                     datasets: [
                         {
                             label: 'Рубли (номинал)',
-                            data: rubleData,
+                            data: rubleNominalData,
                             borderColor: '#95a5a6',
                             backgroundColor: 'rgba(149, 165, 166, 0.1)',
                             borderWidth: 2,
@@ -251,6 +257,14 @@
                             borderColor: '#27ae60',
                             backgroundColor: 'rgba(39, 174, 96, 0.1)',
                             borderWidth: 3,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Рубли (покупательная способность)',
+                            data: rubleRealData,
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                            borderWidth: 2,
                             tension: 0.1
                         }
                     ]
