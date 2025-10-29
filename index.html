@@ -18,24 +18,27 @@
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
         }
         .author {
-            text-align: center;
-            color: #2c3e50;
-            font-size: 18px;
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: #800020;
+            font-size: 16px;
             font-weight: bold;
-            margin-bottom: 10px;
         }
         h2 {
             color: #2c3e50;
             text-align: center;
             margin-bottom: 10px;
+            margin-top: 10px;
         }
         .subtitle {
             text-align: center;
-            color: #800020;
+            color: #666;
             margin-bottom: 30px;
-            font-weight: bold;
+            font-size: 16px;
         }
         .inputs {
             display: grid;
@@ -123,12 +126,17 @@
                 padding: 8px 4px;
                 font-size: 14px;
             }
+            .author {
+                position: static;
+                text-align: center;
+                margin-bottom: 15px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="calculator">
-        <!-- Добавлено имя автора -->
+        <!-- Имя в правом верхнем углу -->
         <div class="author">Светлана Вандакурова</div>
         
         <h2>🧠 Калькулятор "Копи с умом"</h2>
