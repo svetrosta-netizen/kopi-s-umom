@@ -22,6 +22,11 @@
         h2 {
             color: #2c3e50;
             text-align: center;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
             margin-bottom: 30px;
         }
         .inputs {
@@ -108,7 +113,7 @@
 <body>
     <div class="calculator">
         <h2>🧠 Калькулятор "Копи с умом"</h2>
-        <p style="text-align: center; color: #666; margin-bottom: 30px;">Сравнительный анализ банковского вклада и счёта Profit Max</p>
+        <div class="subtitle">Сравнительный анализ банковского вклада и счёта Profit Max</div>
         
         <div class="inputs">
             <div class="input-group">
@@ -122,6 +127,11 @@
             </div>
             
             <div class="input-group">
+                <label>Годовой процент (%):</label>
+                <input type="number" id="annualPercent" value="10" min="0" max="100" step="0.1">
+            </div>
+            
+            <div class="input-group">
                 <label>Срок (лет):</label>
                 <input type="number" id="years" value="5" min="1" max="30">
             </div>
@@ -130,14 +140,13 @@
         </div>
 
         <div class="results">
-            <table id="resultsTable">
+            <table>
                 <thead>
                     <tr>
                         <th>Год</th>
                         <th>Рубли (номинал)</th>
                         <th>Profit Max (евро)</th>
-                        <th>Рубли (реальная стоимость)</th>
-                        <th>Цена бездействия</th>
+                        <th>Разница</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -157,9 +166,10 @@
         function calculate() {
             const initialAmount = parseFloat(document.getElementById('initialAmount').value);
             const monthlyDeposit = parseFloat(document.getElementById('monthlyDeposit').value);
+            const annualPercent = parseFloat(document.getElementById('annualPercent').value);
             const years = parseInt(document.getElementById('years').value);
 
-            if (isNaN(initialAmount) || isNaN(monthlyDeposit) || isNaN(years)) {
+            if (isNaN(initialAmount) || isNaN(monthlyDeposit) || isNaN(annualPercent) || isNaN(years)) {
                 alert('Пожалуйста, заполните все поля корректно');
                 return;
             }
@@ -167,63 +177,44 @@
             const tableBody = document.getElementById('tableBody');
             tableBody.innerHTML = '';
 
-            const yearlyData = [];
             const labels = [];
-            const rubleNominalData = [];
+            const rubleData = [];
             const profitMaxData = [];
-            const rubleRealData = [];
-            const inactionCostData = [];
+            const differenceData = [];
 
-            let rubleNominal = initialAmount;
-            let profitMax = initialAmount;
-            let rubleReal = initialAmount;
+            let rubleBalance = initialAmount;
+            let profitMaxBalance = initialAmount;
 
-            const monthlyRateRub = 0.10 / 12;
-            const monthlyRateEur = 0.22 / 12;
-            const months = years * 12;
+            const monthlyRateRub = annualPercent / 100 / 12;
+            const monthlyRateEur = (annualPercent / 100 + 0.12) / 12; // 10% + 12% роста курса
 
-            // Расчет с ежемесячной капитализацией
             for (let year = 1; year <= years; year++) {
                 // Расчет с ежемесячными пополнениями
                 for (let month = 1; month <= 12; month++) {
-                    rubleNominal = rubleNominal * (1 + monthlyRateRub) + monthlyDeposit;
-                    profitMax = profitMax * (1 + monthlyRateEur) + monthlyDeposit;
+                    rubleBalance = rubleBalance * (1 + monthlyRateRub) + monthlyDeposit;
+                    profitMaxBalance = profitMaxBalance * (1 + monthlyRateEur) + monthlyDeposit;
                 }
 
-                // Реальная стоимость рублевых накоплений
-                rubleReal = rubleNominal / Math.pow(1.12, year);
-                const inactionCost = profitMax - rubleReal;
-
-                const rowData = {
-                    year: year,
-                    rubleNominal: rubleNominal,
-                    profitMax: profitMax,
-                    rubleReal: rubleReal,
-                    inactionCost: inactionCost
-                };
-
-                yearlyData.push(rowData);
-                labels.push(`Год ${year}`);
-                rubleNominalData.push(rubleNominal);
-                profitMaxData.push(profitMax);
-                rubleRealData.push(rubleReal);
-                inactionCostData.push(inactionCost);
+                const difference = profitMaxBalance - rubleBalance;
 
                 // Добавляем строку в таблицу
                 const row = document.createElement('tr');
-                
                 row.innerHTML = `
                     <td>${year}</td>
-                    <td>${formatCurrency(rubleNominal)}</td>
-                    <td class="positive">${formatCurrency(profitMax)}</td>
-                    <td class="negative">${formatCurrency(rubleReal)}</td>
-                    <td class="positive">${formatCurrency(inactionCost)}</td>
+                    <td>${formatCurrency(rubleBalance)}</td>
+                    <td class="positive">${formatCurrency(profitMaxBalance)}</td>
+                    <td class="positive">${formatCurrency(difference)}</td>
                 `;
-                
                 tableBody.appendChild(row);
+
+                // Данные для графика
+                labels.push(`Год ${year}`);
+                rubleData.push(rubleBalance);
+                profitMaxData.push(profitMaxBalance);
+                differenceData.push(difference);
             }
 
-            updateChart(labels, rubleNominalData, profitMaxData, rubleRealData);
+            updateChart(labels, rubleData, profitMaxData);
         }
 
         function formatCurrency(amount) {
@@ -234,7 +225,7 @@
             }).format(amount);
         }
 
-        function updateChart(labels, rubleNominal, profitMax, rubleReal) {
+        function updateChart(labels, rubleData, profitMaxData) {
             const ctx = document.getElementById('growthChart').getContext('2d');
             
             if (chart) {
@@ -248,7 +239,7 @@
                     datasets: [
                         {
                             label: 'Рубли (номинал)',
-                            data: rubleNominal,
+                            data: rubleData,
                             borderColor: '#95a5a6',
                             backgroundColor: 'rgba(149, 165, 166, 0.1)',
                             borderWidth: 2,
@@ -256,18 +247,10 @@
                         },
                         {
                             label: 'Profit Max (евро)',
-                            data: profitMax,
+                            data: profitMaxData,
                             borderColor: '#27ae60',
                             backgroundColor: 'rgba(39, 174, 96, 0.1)',
                             borderWidth: 3,
-                            tension: 0.1
-                        },
-                        {
-                            label: 'Рубли (реальная стоимость)',
-                            data: rubleReal,
-                            borderColor: '#e74c3c',
-                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
-                            borderWidth: 2,
                             tension: 0.1
                         }
                     ]
